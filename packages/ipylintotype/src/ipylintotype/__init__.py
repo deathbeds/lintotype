@@ -1,7 +1,26 @@
-def _jupyter_server_extension_paths():
-    return [{
-        "module": "ipylintotype"
-    }]
+from tornado import ioloop
+from ipykernel.comm import Comm
+import IPython
 
-def load_jupyter_server_extension(nbapp):
-    nbapp.log.info("ipylintotype")
+from ._version import __comm__
+from .linters import LINTERS
+
+# TODO: make a manager
+COMM = None
+
+
+def load_ipython_extension(ipython):
+    global COMM
+    COMM = Comm(target_name=__comm__)
+
+    @COMM.on_msg
+    def _recv(msg):
+        data = msg["content"]["data"]
+        annotations = sum([linter(data["code"]) for linter in LINTERS], [])
+        COMM.send(dict(id=data["id"], annotations=annotations))
+
+
+def unload_ipython_extension(ipython):
+    global COMM
+    COMM.close()
+    COMM = None

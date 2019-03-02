@@ -1,21 +1,25 @@
-import { Application, IPlugin } from '@phosphor/application';
-import { Widget } from '@phosphor/widgets';
+import 'codemirror/addon/lint/lint.js';
 
+import { JupyterLab, JupyterLabPlugin } from '@jupyterlab/application';
 
-import { NAME, VERSION } from '.';
+import { PLUGIN_ID as id, ILintotypeManager } from '.';
+import { LintotypeButton } from './button';
+import { LintotypeManager } from './manager';
 
-import * as CodeMirror from 'codemirror';
-
+import 'codemirror/addon/lint/lint.css';
 import '../style/index.css';
 
-const EXTENSION_ID = `${NAME}:plugin`;
-
-const plugin: IPlugin<Application<Widget>, void> = {
-  id: EXTENSION_ID,
+const plugin: JupyterLabPlugin<ILintotypeManager> = {
+  id,
   requires: [],
+  provides: ILintotypeManager,
   autoStart: true,
-  activate: (app: Application<Widget>) => {
-    console.log('lintotype', app, CodeMirror);
+  activate: (app: JupyterLab) => {
+    let manager = new LintotypeManager();
+    let button = new LintotypeButton();
+    button.manager = manager;
+    app.docRegistry.addWidgetExtension('Notebook', button);
+    return manager;
   }
 };
 
