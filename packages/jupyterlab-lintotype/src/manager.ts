@@ -17,7 +17,13 @@ export class LintotypeManager implements ILintotypeManager {
   private linters = new Map<string, LintotypeManager.ILinter>();
 
   lintifyNotebook(panel: NotebookPanel) {
-    panel.model.contentChanged.connect(() => {
+    if (this.linters.has(panel.session.kernel.id)) {
+      return;
+    }
+
+    this.registerCommTarget(panel.session.kernel);
+
+    const onContentChanged = () => {
       for (const widget of panel.content.widgets) {
         const cm = (widget.editor as any)._editor as CodeMirror.Editor;
         if (!cm.getOption('lint')) {
@@ -26,8 +32,10 @@ export class LintotypeManager implements ILintotypeManager {
           cm.setOption('lint', lint);
         }
       }
-    });
-    this.registerCommTarget(panel.session.kernel);
+    };
+
+    panel.model.contentChanged.connect(onContentChanged);
+    onContentChanged();
     // TODO: allow config in settings, notebook
     // const metaUpdated = (metadata: IObservableJSON) => {
     //   console.log('metadata', metadata);
@@ -47,7 +55,24 @@ export class LintotypeManager implements ILintotypeManager {
           code: string,
           callback: (annotations: any[]) => void
         ): Promise<void> => {
-          const anno = await this.linters.get(panel.session.kernel.id)(code);
+          let anno: LintotypeManager.IAnnotation[] = [];
+          let linter = this.linters.get(panel.session.kernel.id);
+
+          if (linter) {
+            let allCode: string[] = [];
+            let { cells, metadata } = panel.model;
+            let numCells = cells.length;
+            for (let i = 0; i < numCells; i++) {
+              let cell = cells.get(i);
+              console.log(cell);
+            }
+            try {
+              anno = await linter(code, allCode, (metadata.get(NAME) ||
+                {}) as object);
+            } catch (err) {
+              console.warn(err);
+            }
+          }
           callback(
             anno.map(pos => {
               return {
@@ -66,13 +91,21 @@ export class LintotypeManager implements ILintotypeManager {
     kernel.registerCommTarget(
       NAME,
       async (comm: Kernel.IComm, msg: KernelMessage.ICommOpenMsg) => {
-        this.linters.set(kernel.id, async (code: string) => {
-          let id = this.nextId++;
-          let promise = new PromiseDelegate<LintotypeManager.IAnnotation[]>();
-          this.promises.set(id, promise);
-          comm.send({ code, id });
-          return await promise.promise;
-        });
+        this.linters.set(
+          kernel.id,
+          async (code: string, allCode: string[], metadata: object) => {
+            let id = this.nextId++;
+            let promise = new PromiseDelegate<LintotypeManager.IAnnotation[]>();
+            this.promises.set(id, promise);
+            comm.send({
+              code,
+              id,
+              metadata: metadata as any,
+              all_code: allCode
+            });
+            return await promise.promise;
+          }
+        );
 
         comm.onMsg = (msg: KernelMessage.ICommMsgMsg) => {
           let id: number = (msg.content.data as any).id;
@@ -97,6 +130,6 @@ export namespace LintotypeManager {
   }
 
   export interface ILinter {
-    (code: string): Promise<IAnnotation[]>;
+    (code: string, allCode: string[], metadata: object): Promise<IAnnotation[]>;
   }
 }

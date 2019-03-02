@@ -1,3 +1,30 @@
-.jp-LintotypeIcon {
-  background-color: var(--jp-brand-color1);
+:root {
+  --jpltyp-color-warn: var(--jp-warn-color1);
+}
+
+.CodeMirror-gutter-elt .CodeMirror-lint-marker-error,
+.CodeMirror-gutter-elt .CodeMirror-lint-message-error,
+.CodeMirror-gutter-elt .CodeMirror-lint-mark-error {
+  background: none;
+  background-color: var(--jpltyp-color-warn);
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.CodeMirror-gutter-elt .CodeMirror-lint-marker-error:hover,
+.CodeMirror-gutter-elt .CodeMirror-lint-message-error:hover,
+.CodeMirror-gutter-elt .CodeMirror-lint-mark-error:hover {
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.CodeMirror-gutter-elt .CodeMirror-lint-markers {
+  opacity: 0.5;
+}
+
+.CodeMirror-line .CodeMirror-lint-marker-error,
+.CodeMirror-line .CodeMirror-lint-message-error,
+.CodeMirror-line .CodeMirror-lint-mark-error {
+  background: none;
+  border-bottom: solid 2px var(--jpltyp-color-warn);
 }
