@@ -1,10 +1,10 @@
 {
   "private": true,
-  "name": "WXYZ",
+  "name": "Lintotype",
   "version": "0.0.0",
-  "description": "experimental widgets",
+  "description": "interactive code overlays",
   "main": "index.js",
-  "repository": "https://github.com/deathbeds/wxyz",
+  "repository": "https://github.com/deathbeds/lintotype",
   "author": "deadpixels@googlegroups.com",
   "license": "BSD-3-Clause",
   "scripts": {

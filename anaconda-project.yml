@@ -1,43 +1,35 @@
-name: wxyz
-description: experimental widgets
+name: lintotype
+description: code overlays for JupyterLab
 
 commands:
   lab:
     unix: jupyter lab --no-browser --debug
-  lint:
-    unix: |-
-      isort -rc packages \
-      && black packages \
-      && jlpm lint \
-      && flake8 packages/ipywxyz \
-      && pylint ipywxyz
-  test:
-    unix: |-
-      pytest --nbval notebooks/API
 
 env_specs:
   default:
     inherit_from:
-      - wxyz
+      - lintotype
     packages:
-      - black
-      - flake8
       - isort
       - nbval
-      - pylint
       - pytest
       - pytest-cov
-  wxyz:
+  lintotype:
     packages:
-      - bqplot
-      - importnb
-      - ipywidgets
-      - jsonpointer
+      - isort
+      - black
+      - flake8
       - jupyterlab >=0.35,<0.36
+      - mypy
       - nodejs >=8.11,<9
-      - pyld
+      - prospector
+      - pylint
       - python >=3.7,<3.8
-      - pyyaml
+      - tornado<6
+      - yamllint
+      - yapf
+      - pip:
+        - pyre
     channels:
       - conda-forge
       - defaults

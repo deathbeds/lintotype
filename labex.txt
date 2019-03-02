@@ -1,3 +1,1 @@
-@jupyter-widgets/jupyterlab-manager@0.38
-bqplot@0.4.5
-./packages/jupyterlab-wxyz
+./packages/jupyterlab-lintotype

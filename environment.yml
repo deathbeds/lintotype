@@ -1,16 +1,20 @@
-name: wxyz
+name: lintotype
 
 channels:
   - conda-forge
   - defaults
 
 dependencies:
-  - bqplot
-  - importnb
-  - ipywidgets
-  - jsonpointer
+  - black
+  - flake8
   - jupyterlab >=0.35,<0.36
+  - mypy
   - nodejs >=8.11,<9
-  - pyld
+  - prospector
+  - pylint
   - python >=3.7,<3.8
-  - pyyaml
+  - tornado<6
+  - yamllint
+  - yapf
+  - pip:
+    - pyre
