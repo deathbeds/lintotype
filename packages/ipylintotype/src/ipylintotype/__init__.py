@@ -21,9 +21,14 @@ def load_ipython_extension(ipython):
 
                 id: 1234  # client id, pretty opaque from the backend
                 code: "x = 1\nx + 1"
+                # TODO: implement this
                 all_code:
                     application/python:
                         - "x = 1\nx + 1"
+                # an overlay of:
+                # - settings
+                # - notebook metadata
+                # - cell metadata?
                 metadata:
                     mypy:
                         foo: bar
@@ -39,6 +44,18 @@ def load_ipython_extension(ipython):
                   to:
                     line: 1
                     col: 2
+
+            # DISCUSS
+            - should these just be embedded Language Server Protocol schema?
+
+              > https://microsoft.github.io/language-server-protocol/specification#textDocument_publishDiagnostics
+
+                id: 4567
+                codeActions:
+                    text/python:
+                    - {} # schema-enforced thing
+
+
         """
         data = msg["content"]["data"]
         annotations = sum([linter(data["code"]) for linter in LINTERS], [])
