@@ -1,6 +1,6 @@
-from tornado import ioloop
-from ipykernel.comm import Comm
 import IPython
+from ipykernel.comm import Comm
+from tornado import ioloop
 
 from ._version import __comm__
 from .linters import LINTERS

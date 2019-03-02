@@ -4,6 +4,12 @@ description: code overlays for JupyterLab
 commands:
   lab:
     unix: jupyter lab --no-browser --debug
+  lint:
+    unix: |-
+      set -eux \
+      && isort -rc packages \
+      && black packages \
+      && jlpm lint
 
 env_specs:
   default:
