@@ -12,13 +12,19 @@ from .annotator import IPythonAnnotator
 _re_pylint = r"^(.):\s*(\d+),\s(\d+):\s*(.*?)\s*\((.*)\)$"
 
 
+_help_pylint_args = (
+    f"https://docs.pylint.org/en/{pylint.__version__}/run.html#command-line-options"
+)
+
+
 class PyLint(IPythonAnnotator):
     entry_point = traitlets.Unicode(default_value=pylint.__name__)
-    disable = traitlets.List(traitlets.Unicode())
+    args = traitlets.List(traitlets.Unicode(), help=_help_pylint_args)
 
-    @traitlets.default("disable")
+    @traitlets.default("args")
     def _default_ignore(self):
-        return ["trailing-newlines"]
+        rules = ["trailing-newlines"]
+        return [f"""--disable-rules={",".join(rules)}"""]
 
     def run(self, cell_id, code, metadata, shell, *args, **kwargs):
         s = io.StringIO()
@@ -32,9 +38,7 @@ class PyLint(IPythonAnnotator):
                 io.StringIO()
             ):
                 try:
-                    res = pylint.lint.Run(
-                        [f"""--disable={",".join(self.disable)}""", str(code_file)]
-                    )
+                    res = pylint.lint.Run(list(self.args) + [str(code_file)])
                 except:
                     pass
         matches = re.findall(_re_pylint, s.getvalue(), flags=re.M)

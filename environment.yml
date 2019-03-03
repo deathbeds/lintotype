@@ -7,6 +7,7 @@ channels:
 dependencies:
   - black
   - flake8
+  - ipywidgets
   - isort
   - jupyterlab >=0.35,<0.36
   - mypy

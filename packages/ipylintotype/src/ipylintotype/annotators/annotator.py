@@ -6,6 +6,7 @@ import traitlets
 class Annotator(traitlets.HasTraits):
     mimetype = traitlets.Unicode()
     entry_point = traitlets.Unicode()
+    enabled = traitlets.Bool(default_value=True)
 
     def __call__(self, cell_id, code, metadata, shell, *args, **kwargs):
         return self.run(cell_id, code, metadata, shell, *args, **kwargs)

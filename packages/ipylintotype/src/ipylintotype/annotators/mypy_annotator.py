@@ -9,10 +9,13 @@ _re_mypy = (
     r"(?P<source>.*):(?P<line>\d+):(?P<col>\d+):\s*(?P<severity>.*)\s*:(?P<message>.*)"
 )
 
+_help_mypy_args = "https://mypy.readthedocs.io/en/latest/command_line.html"
+
 
 class MyPy(IPythonAnnotator):
     args = traitlets.List(
-        ["--show-column-numbers", "--show-error-context", "--follow-imports", "silent"]
+        ["--show-column-numbers", "--show-error-context", "--follow-imports", "silent"],
+        help=_help_mypy_args,
     )
 
     entry_point = traitlets.Unicode(default_value=mypy.__name__)

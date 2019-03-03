@@ -44,10 +44,13 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
         self.close()
         self.current_comm = Comm(target_name=self.comm_name)
         self.current_comm.on_msg(self.on_msg)
+        __import__("atexit").register(AnnotationFormatter.close)
 
     def __call__(self, cell_id, code=None, metadata=None, *args):
         result = dict()
         for annotator in self.annotators:
+            if not annotator.enabled:
+                continue
             annotator_code = code.get(annotator.mimetype)
             if not annotator_code:
                 continue
