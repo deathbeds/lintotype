@@ -6,7 +6,7 @@ import traitlets
 from .annotator import IPythonAnnotator
 
 _re_mypy = (
-    r"(?P<type>.*):(?P<line>\d+):(?P<col>\d+):\s*(?P<severity>.*)\s*:(?P<message>.*)"
+    r"(?P<source>.*):(?P<line>\d+):(?P<col>\d+):\s*(?P<severity>.*)\s*:(?P<message>.*)"
 )
 
 

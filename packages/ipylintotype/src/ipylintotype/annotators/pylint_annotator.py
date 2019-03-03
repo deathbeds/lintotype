@@ -14,6 +14,11 @@ _re_pylint = r"^(.):\s*(\d+),\s(\d+):\s*(.*?)\s*\((.*)\)$"
 
 class PyLint(IPythonAnnotator):
     entry_point = traitlets.Unicode(default_value=pylint.__name__)
+    disable = traitlets.List(traitlets.Unicode())
+
+    @traitlets.default("disable")
+    def _default_ignore(self):
+        return ["trailing-newlines"]
 
     def run(self, cell_id, code, metadata, shell, *args, **kwargs):
         s = io.StringIO()
@@ -27,7 +32,9 @@ class PyLint(IPythonAnnotator):
                 io.StringIO()
             ):
                 try:
-                    res = pylint.lint.Run([str(code_file)])
+                    res = pylint.lint.Run(
+                        [f"""--disable={",".join(self.disable)}""", str(code_file)]
+                    )
                 except:
                     pass
         matches = re.findall(_re_pylint, s.getvalue(), flags=re.M)
@@ -35,7 +42,7 @@ class PyLint(IPythonAnnotator):
         for severity, line, col, msg, rule in matches:
             line = int(line) - line_offsets[cell_id]
             col = int(col)
-            msg = (f"{msg.strip()}\t[{self.entry_point}]",)
+            msg = (f"{msg.strip()}\t[{self.entry_point}:{rule}]",)
             yield {
                 "message": msg,
                 "severity": {
