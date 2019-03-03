@@ -1,69 +1,27 @@
 import IPython
-from ipykernel.comm import Comm
-from tornado import ioloop
 
 from ._version import __comm__
-from .linters import LINTERS
+from .annotators.annotator import Annotator  # noqa
+from .formatter import AnnotationFormatter
 
-# TODO: make a manager
-COMM = None
-
-
-def load_ipython_extension(ipython):
-    global COMM
-    COMM = Comm(target_name=__comm__)
-
-    @COMM.on_msg
-    def _recv(msg):
-        """ A description of the current wire format (subject to change)
-
-            Receive format:
-
-                id: 1234  # client id, pretty opaque from the backend
-                code: "x = 1\nx + 1"
-                # TODO: implement this
-                all_code:
-                    application/python:
-                        - "x = 1\nx + 1"
-                # an overlay of:
-                # - settings
-                # - notebook metadata
-                # - cell metadata?
-                metadata:
-                    mypy:
-                        foo: bar
-            Send format:
-
-                id: 1234
-                annotations:
-                - message: bad type thing
-                  severity: error
-                  from:
-                    line: 1
-                    col: 1
-                  to:
-                    line: 1
-                    col: 2
-
-            # DISCUSS
-            - should these just be embedded Language Server Protocol schema?
-
-              > https://microsoft.github.io/language-server-protocol/specification#textDocument_publishDiagnostics
-
-                id: 4567
-                codeActions:
-                    text/python:
-                    - {} # schema-enforced thing
+LINTOTYPE = None
 
 
-        """
-        data = msg["content"]["data"]
-        annotations = sum([linter(data["code"]) for linter in LINTERS], [])
-        COMM.send(dict(id=data["id"], annotations=annotations))
+def load_ipython_extension(shell):
+    global LINTOTYPE
+    unload_ipython_extension(shell)
+    LINTOTYPE = AnnotationFormatter(parent=IPython.get_ipython())
 
 
-def unload_ipython_extension(ipython):
-    global COMM
-    if COMM:
-        COMM.close()
-        COMM = None
+def unload_ipython_extension(shell):
+    global LINTOTYPE
+    if LINTOTYPE:
+        LINTOTYPE.close()
+
+
+def get_ipylintotype():
+    return LINTOTYPE
+
+
+if __name__ == "__main__":
+    load_ipython_extension(IPython.get_ipython())
