@@ -23,12 +23,11 @@ def load_ipython_extension(ipython):
                 code: "x = 1\nx + 1"
                 # TODO: implement this
                 all_code:
-                    application/python:
-                        - "x = 1\nx + 1"
-                # an overlay of:
-                # - settings
-                # - notebook metadata
-                # - cell metadata?
+                    text/x-ipython:
+                        - id: abc1234
+                        - code: |-
+                            x = 1
+                            x + 1
                 metadata:
                     mypy:
                         foo: bar
@@ -36,14 +35,15 @@ def load_ipython_extension(ipython):
 
                 id: 1234
                 annotations:
-                - message: bad type thing
-                  severity: error
-                  from:
-                    line: 1
-                    col: 1
-                  to:
-                    line: 1
-                    col: 2
+                    text/x-ipython:
+                    - message: bad type thing
+                      severity: error
+                      from:
+                        line: 1
+                        col: 1
+                      to:
+                        line: 1
+                        col: 2
 
             # DISCUSS
             - should these just be embedded Language Server Protocol schema?
@@ -58,8 +58,22 @@ def load_ipython_extension(ipython):
 
         """
         data = msg["content"]["data"]
-        annotations = sum([linter(data["code"]) for linter in LINTERS], [])
-        COMM.send(dict(id=data["id"], annotations=annotations))
+        annotation_results = [
+            linter(
+                code=data["code"],
+                all_code=data.get("all_code", {}),
+                metadata=data.get("metadata", {}),
+            )
+            for linter in LINTERS
+        ]
+
+        anno_bundle = {}
+
+        for result in annotation_results:
+            for mimetype, results in result.items():
+                anno_bundle.setdefault(mimetype, []).extend(results)
+
+        COMM.send(dict(id=data["id"], annotations=anno_bundle))
 
 
 def unload_ipython_extension(ipython):
