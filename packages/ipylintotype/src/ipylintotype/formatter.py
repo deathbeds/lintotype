@@ -97,9 +97,8 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
         if self.validate:
             try:
                 request.validate(data)
-                self.log.error("request ok")
             except Exception as err:
-                self.log.error(err)
+                self.log.warn("Request Validation Error:\n%s", err)
 
         request_id = data.get("request_id")
         cell_id = data.get("cell_id")
@@ -117,8 +116,7 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
         if self.validate:
             try:
                 response.validate(msg)
-                self.log.error("msg ok")
             except Exception as err:
-                self.log.warn(err)
+                self.log.warn("Response Validation Error:\n%s", err)
 
         self.current_comm.send(msg)

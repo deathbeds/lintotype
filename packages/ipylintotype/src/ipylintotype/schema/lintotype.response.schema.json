@@ -1,9 +1,12 @@
 {
   "type": "object",
+  "additionalProperties": false,
   "properties": {
-    "additionalProperties": false,
     "request_id": {
       "type": "number"
+    },
+    "cell_id": {
+      "type": "string"
     },
     "diagnostics": {
       "patternProperties": {

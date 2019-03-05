@@ -11,14 +11,17 @@
     "code": {
       "patternProperties": {
         ".*/.*": {
-          "type": "object",
-          "additionalProperties": "false",
-          "properties": {
-            "cell_id": {
-              "type": "string"
-            },
-            "code": {
-              "type": "string"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "cell_id": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              }
             }
           }
         }
