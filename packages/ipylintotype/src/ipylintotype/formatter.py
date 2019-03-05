@@ -12,10 +12,10 @@ here = Path(__file__).parent
 schemas = here / "schema"
 
 request = Draft4Validator(
-    json.loads((schemas / "ipylinotype.response.schema.json").read_text())
+    json.loads((schemas / "lintotype.request.schema.json").read_text())
 )
 response = Draft4Validator(
-    json.loads((schemas / "ipylinotype.response.schema.json").read_text())
+    json.loads((schemas / "lintotype.response.schema.json").read_text())
 )
 
 
