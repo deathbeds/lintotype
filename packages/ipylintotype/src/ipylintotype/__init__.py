@@ -1,7 +1,7 @@
 import IPython
 
 from ._version import __comm__
-from .annotators.annotator import Annotator  # noqa
+from .diagnosers.diagnoser import Diagnoser  # noqa
 from .formatter import AnnotationFormatter
 
 LINTOTYPE = None

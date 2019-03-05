@@ -1,35 +1,53 @@
+import json
+from pathlib import Path
+
 import IPython
 import traitlets
 from ipykernel.comm import Comm
+from jsonschema.validators import Draft4Validator
 
 from ._version import __comm__
 
+here = Path(__file__).parent
+schemas = here / "schema"
+
+request = Draft4Validator(
+    json.loads((schemas / "ipylinotype.response.schema.json").read_text())
+)
+response = Draft4Validator(
+    json.loads((schemas / "ipylinotype.response.schema.json").read_text())
+)
+
 
 class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
-    annotators = traitlets.List()
+    diagnosers = traitlets.List()
 
     comm_name = traitlets.Unicode(default_value=__comm__)
 
     current_comm = traitlets.Any()
 
-    @traitlets.default("annotators")
-    def _default_annotators(self):
-        annotators = []
-        try:
-            from .annotators.mypy_annotator import MyPy
+    validate = traitlets.Bool(True)
 
-            annotators += [MyPy()]
+    @traitlets.default("diagnosers")
+    def _default_diagnosers(self):
+        """ TODO: need a cleaner way to add this... entry_points?
+        """
+        diagnosers = []
+        try:
+            from .diagnosers.mypy_diagnoser import MyPyDiagnoser
+
+            diagnosers += [MyPyDiagnoser()]
         except ImportError:
             self.log.warn("mypy could not be imported")
 
         try:
-            from .annotators.pylint_annotator import PyLint
+            from .diagnosers.pylint_diagnoser import PyLintDiagnoser
 
-            annotators += [PyLint()]
+            diagnosers += [PyLintDiagnoser()]
         except ImportError:
             self.log.warn("pylint could not be imported")
 
-        return annotators
+        return diagnosers
 
     def init_user_ns(self):
         ...
@@ -48,23 +66,23 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
 
     def __call__(self, cell_id, code=None, metadata=None, *args):
         result = dict()
-        for annotator in self.annotators:
-            if not annotator.enabled:
+        for diagnoser in self.diagnosers:
+            if not diagnoser.enabled:
                 continue
-            annotator_code = code.get(annotator.mimetype)
-            if not annotator_code:
+            diagnoser_code = code.get(diagnoser.mimetype)
+            if not diagnoser_code:
                 continue
             try:
-                annotations = annotator(
+                diagnostics = diagnoser(
                     cell_id=cell_id,
-                    code=code[annotator.mimetype],
-                    metadata=metadata.get(annotator.mimetype, {}),
+                    code=code[diagnoser.mimetype],
+                    metadata=metadata.get(diagnoser.mimetype, {}),
                     shell=self,
                 )
-                result.setdefault(annotator.mimetype, []).extend(annotations)
+                result.setdefault(diagnoser.mimetype, []).extend(diagnostics)
             except Exception as err:
-                self.log.error(f"{annotator}: {err}\n{code}")
-                self.log.exception(f"{annotator} failed")
+                self.log.error(f"{diagnoser}: {err}\n{code}")
+                self.log.exception(f"{diagnoser} failed")
 
         return result
 
@@ -75,17 +93,32 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
 
     def on_msg(self, msg):
         data = msg["content"]["data"]
+
+        if self.validate:
+            try:
+                request.validate(data)
+                self.log.error("request ok")
+            except Exception as err:
+                self.log.error(err)
+
         request_id = data.get("request_id")
         cell_id = data.get("cell_id")
 
         if not request_id:
             return
 
-        annotations = self(
+        diagnostics = self(
             cell_id=cell_id,
             code=data.get("code", {}),
             metadata=data.get("metadata", {}),
         )
-        self.current_comm.send(
-            dict(cell_id=cell_id, request_id=request_id, annotations=annotations)
-        )
+        msg = dict(cell_id=cell_id, request_id=request_id, diagnostics=diagnostics)
+
+        if self.validate:
+            try:
+                response.validate(msg)
+                self.log.error("msg ok")
+            except Exception as err:
+                self.log.warn(err)
+
+        self.current_comm.send(msg)

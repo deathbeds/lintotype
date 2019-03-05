@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "properties": {
+    "additionalProperties": false,
+    "request_id": {
+      "type": "number"
+    },
+    "diagnostics": {
+      "patternProperties": {
+        ".*/.*": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "additionalProperties": false,
+              "message": {"type": "string"},
+              "severity": {"type": "number"},
+              "source": {"type": "string"},
+              "code": {"type": "string"},
+              "range": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "properties": {
+                      "line": {
+                        "type": "number"
+                      },
+                      "character": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "end": {
+                    "properties": {
+                      "line": {
+                        "type": "number"
+                      },
+                      "character": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "patternProperties": {
+        ".*/.*": {
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  }
+}

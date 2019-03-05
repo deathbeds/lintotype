@@ -6,7 +6,9 @@
   "bugs": {
     "url": "https://github.com/deathbeds/lintotype/issues"
   },
-  "dependencies": {},
+  "dependencies": {
+    "vscode-languageserver-types": "^3.14.0"
+  },
   "description": "interactive code overlays for JupyterLab",
   "devDependencies": {
     "@jupyterlab/application": "^0.19.1",

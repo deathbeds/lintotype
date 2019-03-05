@@ -14,7 +14,7 @@ export class LintotypeButton
 
   createNew(
     panel: NotebookPanel,
-    context: DocumentRegistry.IContext<INotebookModel>
+    _context: DocumentRegistry.IContext<INotebookModel>
   ): IDisposable {
     let button = new ToolbarButton({
       iconClassName: 'jp-LintotypeIcon jp-Icon jp-Icon-16',

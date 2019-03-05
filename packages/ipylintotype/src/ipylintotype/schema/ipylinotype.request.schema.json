@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "number"
+    },
+    "cell_id": {
+      "type": "string"
+    },
+    "code": {
+      "patternProperties": {
+        ".*/.*": {
+          "type": "object",
+          "additionalProperties": "false",
+          "properties": {
+            "cell_id": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "patternProperties": {
+        ".*/.*": {
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  }
+}

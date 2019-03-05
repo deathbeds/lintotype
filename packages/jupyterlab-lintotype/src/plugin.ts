@@ -5,6 +5,7 @@ import { INotebookTracker } from '@jupyterlab/notebook';
 
 import { PLUGIN_ID as id, ILintotypeManager } from '.';
 import { LintotypeManager } from './manager';
+import { CodeMirrorAnnotator } from './annotators/codemirror';
 
 import 'codemirror/addon/lint/lint.css';
 import '../style/index.css';
@@ -14,13 +15,16 @@ const plugin: JupyterLabPlugin<ILintotypeManager> = {
   requires: [INotebookTracker],
   provides: ILintotypeManager,
   autoStart: true,
-  activate: (app: JupyterLab, notebooks: INotebookTracker) => {
+  activate: (_app: JupyterLab, notebooks: INotebookTracker) => {
     let manager = new LintotypeManager();
+
+    let cmAnnotator = new CodeMirrorAnnotator(manager);
 
     notebooks.currentChanged.connect(async () => {
       const panel = notebooks.currentWidget;
       await panel.session.ready;
       manager.lintifyNotebook(panel);
+      cmAnnotator.lintifyNotebook(panel);
     });
 
     // let button = new LintotypeButton();
