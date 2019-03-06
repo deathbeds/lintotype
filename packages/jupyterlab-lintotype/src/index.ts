@@ -24,9 +24,15 @@ export const ILintotypeManager = new Token<ILintotypeManager>(PLUGIN_ID);
 export namespace ILintotypeManager {
   export interface ILintoTypeResponse {
     request_id: number;
-    diagnostics?: IDiagnosticMimeBundle;
-    codeActions?: ICodeActionMimeBundle;
+    annotations?: IAnnotationsBundle;
     metadata?: any;
+  }
+
+  export interface IAnnotationsBundle {
+    [key: string]: {
+      diagnostics?: Diagnostic[];
+      code_actions?: CodeAction[];
+    };
   }
 
   export interface IInputMimeBundle {
@@ -38,14 +44,6 @@ export namespace ILintotypeManager {
   export interface IPos {
     line: number;
     col: number;
-  }
-
-  export interface IDiagnosticMimeBundle {
-    [key: string]: Diagnostic[];
-  }
-
-  export interface ICodeActionMimeBundle {
-    [key: string]: CodeAction[];
   }
 
   export interface ILinter {

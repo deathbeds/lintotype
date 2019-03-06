@@ -1,7 +1,7 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { Cell } from '@jupyterlab/cells';
 import CodeMirror from 'codemirror';
-import { Diagnostic } from 'vscode-languageserver-types';
+import { Diagnostic, CodeAction } from 'vscode-languageserver-types';
 import { ILintotypeManager } from '..';
 
 const CM_SEVERITY = {
@@ -14,6 +14,7 @@ const CM_SEVERITY = {
 export class CodeMirrorAnnotator
   implements ILintotypeManager.IAnnotationRenderer {
   private _lintotype: ILintotypeManager;
+  private _lineWidgets = new Map<string, CodeMirror.LineWidget[]>();
 
   constructor(lintotype: ILintotypeManager) {
     this._lintotype = lintotype;
@@ -56,26 +57,59 @@ export class CodeMirrorAnnotator
       lint: {
         async: true,
         hasGutter: true,
-        delay: 50,
         getAnnotations: async (
           _code: string,
           callback: (annotations: CodeMirrorAnnotator.IMark[]) => void
         ): Promise<void> => {
-          let { diagnostics } = await this._lintotype.annotateNotebook(
-            panel,
-            cell
-          );
-
+          let response = await this._lintotype.annotateNotebook(panel, cell);
           try {
-            callback(
-              diagnostics[cell.model.mimeType].map(diag => this.lspToCM(diag))
-            );
+            const annotations = response.annotations[cell.model.mimeType];
+            console.table(annotations.diagnostics);
+            callback((annotations.diagnostics || []).map(this.lspToCM));
+            console.table(annotations.code_actions);
           } catch {
             callback([]);
           }
+
+          this.makeLineWidgets(
+            cell,
+            response.annotations[cell.model.mimeType].code_actions
+          );
         }
       }
     };
+  }
+
+  removeLineWidgets(cell: Cell) {
+    for (const widget of this._lineWidgets.get(cell.model.id) || []) {
+      widget.clear();
+    }
+    this._lineWidgets.delete(cell.model.id);
+  }
+
+  makeLineWidgets(cell: Cell, codeActions: CodeAction[] = []) {
+    const cm = (cell.editor as any)._editor as CodeMirror.Editor;
+    this.removeLineWidgets(cell);
+
+    let lineWidgets: CodeMirror.LineWidget[] = [];
+
+    (codeActions || []).forEach(action => {
+      let changes = action.edit.changes[cell.model.id];
+      if (changes && changes.length) {
+        let btn = document.createElement('button');
+        btn.className = 'jp-LintoType-CodeAction';
+        btn.onclick = () => {
+          this.removeLineWidgets(cell);
+          cm.setValue(changes[0].newText.trim());
+          cm.refresh();
+          cm.focus();
+        };
+        btn.textContent = action.title;
+        lineWidgets.push(cm.addLineWidget(changes[0].range.end.line, btn));
+      }
+    });
+
+    this._lineWidgets.set(cell.model.id, lineWidgets);
   }
 }
 

@@ -6,13 +6,13 @@ channels:
 
 dependencies:
   - black
-  - flake8
+  - flake8 >=3.7.7
   - ipywidgets
   - isort
   - jupyterlab >=0.35,<0.36
   - mypy
   - nodejs >=8.11,<9
-  - prospector
+  - pycodestyle >=2.5.0
   - pylint
   - python >=3.7,<3.8
   - tornado<6

@@ -52,17 +52,23 @@ class PyLintDiagnoser(IPythonDiagnoser):
 
         matches = re.findall(_re_pylint, outs, flags=re.M)
 
+        diagnostics = []
+
         for severity, line, col, msg, rule in matches:
             line = int(line) - line_offsets[cell_id]
             col = int(col)
             msg = msg.strip()
-            yield {
-                "message": msg,
-                "source": self.entry_point,
-                "code": rule,
-                "severity": _pylint_severity.get(severity, self.Severity.error),
-                "range": {
-                    "start": dict(line=line - 1, character=col - 1),
-                    "end": dict(line=line - 1, character=col),
-                },
-            }
+            diagnostics.append(
+                {
+                    "message": msg,
+                    "source": self.entry_point,
+                    "code": rule,
+                    "severity": _pylint_severity.get(severity, self.Severity.error),
+                    "range": {
+                        "start": dict(line=line - 1, character=col - 1),
+                        "end": dict(line=line - 1, character=col),
+                    },
+                }
+            )
+
+        return dict(diagnostics=diagnostics) if diagnostics else {}

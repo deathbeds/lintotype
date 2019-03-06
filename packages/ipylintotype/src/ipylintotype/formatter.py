@@ -1,12 +1,14 @@
 import json
+from collections import defaultdict
 from pathlib import Path
 
 import IPython
 import traitlets
+from entrypoints import get_group_named
 from ipykernel.comm import Comm
 from jsonschema.validators import Draft4Validator
 
-from ._version import __comm__
+from ._version import __comm__, __ep__
 
 here = Path(__file__).parent
 schemas = here / "schema"
@@ -33,19 +35,11 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
         """ TODO: need a cleaner way to add this... entry_points?
         """
         diagnosers = []
-        try:
-            from .diagnosers.mypy_diagnoser import MyPyDiagnoser
-
-            diagnosers += [MyPyDiagnoser()]
-        except ImportError:
-            self.log.warn("mypy could not be imported")
-
-        try:
-            from .diagnosers.pylint_diagnoser import PyLintDiagnoser
-
-            diagnosers += [PyLintDiagnoser()]
-        except ImportError:
-            self.log.warn("pylint could not be imported")
+        for name, ep in get_group_named(__ep__).items():
+            try:
+                diagnosers.append(ep.load()())
+            except Exception as err:
+                self.log.warn("%s Load error %s", name, err)
 
         return diagnosers
 
@@ -65,21 +59,25 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
         __import__("atexit").register(AnnotationFormatter.close)
 
     def __call__(self, cell_id, code=None, metadata=None, *args):
-        result = dict()
+        # TODO type this or something
+        result = {}
+
         for diagnoser in self.diagnosers:
             if not diagnoser.enabled:
                 continue
-            diagnoser_code = code.get(diagnoser.mimetype)
-            if not diagnoser_code:
+
+            mime = diagnoser.mimetype
+            mime_code = code.get(mime)
+            mime_meta = metadata.get(mime, {})
+
+            if not mime_code:
                 continue
             try:
-                diagnostics = diagnoser(
-                    cell_id=cell_id,
-                    code=code[diagnoser.mimetype],
-                    metadata=metadata.get(diagnoser.mimetype, {}),
-                    shell=self,
+                annotations = diagnoser(
+                    cell_id=cell_id, code=mime_code, metadata=mime_meta, shell=self
                 )
-                result.setdefault(diagnoser.mimetype, []).extend(diagnostics)
+                for anno_type, annos in annotations.items():
+                    result.setdefault(mime, {}).setdefault(anno_type, []).extend(annos)
             except Exception as err:
                 self.log.error(f"{diagnoser}: {err}\n{code}")
                 self.log.exception(f"{diagnoser} failed")
@@ -106,12 +104,12 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
         if not request_id:
             return
 
-        diagnostics = self(
+        annotations = self(
             cell_id=cell_id,
             code=data.get("code", {}),
             metadata=data.get("metadata", {}),
         )
-        msg = dict(cell_id=cell_id, request_id=request_id, diagnostics=diagnostics)
+        msg = dict(cell_id=cell_id, request_id=request_id, annotations=annotations)
 
         if self.validate:
             try:

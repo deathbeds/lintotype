@@ -35,17 +35,25 @@ class MyPyDiagnoser(IPythonDiagnoser):
         matches = [re.match(_re_mypy, line) for line in out.strip().split("\n")]
         matches = [match.groupdict() for match in matches if match]
 
+        diagnostics = []
+
         for diag in matches:
             line = int(diag["line"]) - line_offsets[cell_id]
             col = int(diag["col"])
             msg = diag["message"].strip()
 
-            yield {
-                "message": msg,
-                "severity": _mypy_severity.get(diag["severity"], self.Severity.error),
-                "source": self.entry_point,
-                "range": {
-                    "start": dict(line=line - 1, character=col - 1),
-                    "end": dict(line=line - 1, character=col),
-                },
-            }
+            diagnostics.append(
+                {
+                    "message": msg,
+                    "severity": _mypy_severity.get(
+                        diag["severity"], self.Severity.error
+                    ),
+                    "source": self.entry_point,
+                    "range": {
+                        "start": dict(line=line - 1, character=col - 1),
+                        "end": dict(line=line - 1, character=col),
+                    },
+                }
+            )
+
+        return dict(diagnostics=diagnostics) if diagnostics else {}

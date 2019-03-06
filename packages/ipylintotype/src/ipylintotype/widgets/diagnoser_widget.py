@@ -1,4 +1,13 @@
-from ipywidgets import HTML, Box, HBox, Textarea, ToggleButton, VBox
+from ipywidgets import (
+    HTML,
+    Box,
+    HBox,
+    IntSlider,
+    SelectMultiple,
+    Textarea,
+    ToggleButton,
+    VBox,
+)
 from traitlets import dlink, link
 
 from ..diagnosers.diagnoser import Diagnoser
@@ -31,14 +40,46 @@ def show_args(diagnoser, container=VBox):
     return container([text, help])
 
 
+def show_line_length(diagnoser):
+    slider = IntSlider(description="line length", max=200, min=11)
+    link((diagnoser, "line_length"), (slider, "value"))
+    return slider
+
+
+def show_flake8(diagnoser):
+    ignore = Textarea(description="ignore")
+    dlink(
+        (ignore, "value"),
+        (diagnoser, "ignore"),
+        lambda i: [i.strip() for i in i.split(" ")],
+    )
+    select = SelectMultiple(
+        options=["E", "W", "F"], value=["E", "W", "F"], description="select"
+    )
+    dlink((select, "value"), (diagnoser, "select"))
+    return [ignore, select]
+
+
 visibility = {True: "visible", False: "hidden"}
 
 
-def show_diagnoser(diagnoser: Diagnoser, container=VBox) -> Box:
+def show_diagnoser(diagnoser: Diagnoser, container=HBox) -> Box:
     enabled = show_enabled(diagnoser)
     widgets = []
     if hasattr(diagnoser, "args"):
         widgets += [show_args(diagnoser)]
+    if hasattr(diagnoser, "line_length"):
+        widgets += [show_line_length(diagnoser)]
+
+    is_flake8 = False
+    try:
+        from ipylintotype.diagnosers.flake8_diagnoser import Flake8Diagnoser
+
+        is_flake8 = isinstance(diagnoser, Flake8Diagnoser)
+    except:
+        pass
+    if is_flake8:
+        widgets += show_flake8(diagnoser)
 
     for widget in widgets:
         dlink((diagnoser, "enabled"), (widget.layout, "visibility"), visibility.get)
@@ -46,7 +87,7 @@ def show_diagnoser(diagnoser: Diagnoser, container=VBox) -> Box:
     return container([enabled] + widgets)
 
 
-def show_formatter(formatter: AnnotationFormatter = None, container=HBox) -> HBox:
+def show_formatter(formatter: AnnotationFormatter = None, container=VBox) -> HBox:
     if formatter is None:
         from .. import get_ipylintotype
 

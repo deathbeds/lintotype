@@ -29,6 +29,8 @@ class Diagnoser(traitlets.HasTraits):
 class IPythonDiagnoser(Diagnoser):
     mimetype = traitlets.Unicode(default_value="text/x-ipython")
 
+    cell_separator = traitlets.Unicode(default_value="\n")
+
     def transform_for_diagnostics(self, cells, shell):
         code = []
         line_offsets = {}
@@ -36,4 +38,4 @@ class IPythonDiagnoser(Diagnoser):
             line_offsets[cell["cell_id"]] = len(code)
             code += shell.transform_cell(cell["code"]).split("\n")
 
-        return "\n".join(code), line_offsets
+        return self.cell_separator.join(code), line_offsets
