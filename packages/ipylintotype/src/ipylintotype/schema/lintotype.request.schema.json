@@ -1,19 +1,13 @@
 {
-  "type": "object",
   "additionalProperties": false,
   "properties": {
-    "request_id": {
-      "type": "number"
-    },
     "cell_id": {
       "type": "string"
     },
     "code": {
       "patternProperties": {
         ".*/.*": {
-          "type": "array",
           "items": {
-            "type": "object",
             "additionalProperties": false,
             "properties": {
               "cell_id": {
@@ -22,22 +16,32 @@
               "code": {
                 "type": "string"
               }
-            }
-          }
+            },
+            "type": "object"
+          },
+          "type": "array"
         }
       }
     },
     "metadata": {
       "patternProperties": {
         ".*/.*": {
-          "type": "object",
           "patternProperties": {
             ".*": {
               "type": "object"
             }
-          }
+          },
+          "type": "object"
         }
       }
+    },
+    "request_id": {
+      "type": "number"
     }
-  }
+  },
+  "required": [
+    "request_id",
+    "cell_id"
+  ],
+  "type": "object"
 }

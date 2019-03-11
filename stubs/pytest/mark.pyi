@@ -1,0 +1,3 @@
+import typing as typ
+
+def parametrize(*args, **kwargs) -> typ.Any: ...

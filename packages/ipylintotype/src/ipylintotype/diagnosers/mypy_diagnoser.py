@@ -1,9 +1,11 @@
 import re
+import typing as typ
 
 import mypy.api
 import traitlets
 
-from .diagnoser import Diagnoser, IPythonDiagnoser
+from .. import shapes
+from .diagnoser import Diagnoser, InteractiveShell, IPythonDiagnoser
 
 _re_mypy = (
     r"(?P<source>.*):(?P<line>\d+):(?P<col>\d+):\s*(?P<severity>.*?)\s*:(?P<message>.*)"
@@ -17,27 +19,41 @@ _mypy_severity = {
     "note": Diagnoser.Severity.info,
 }
 
+_default_mypy_args = [
+    "--show-column-numbers",
+    "--show-error-context",
+    "--follow-imports",
+    "silent",
+]
+
 
 class MyPyDiagnoser(IPythonDiagnoser):
-    args = traitlets.List(
-        ["--show-column-numbers", "--show-error-context", "--follow-imports", "silent"],
-        help=_help_mypy_args,
-    )
+    args = traitlets.List(_default_mypy_args, help=_help_mypy_args)  # type: ignore
 
     entry_point = traitlets.Unicode(default_value=mypy.__name__)
 
-    def run(self, cell_id, code, metadata, shell, *args, **kwargs):
-        code, line_offsets = self.transform_for_diagnostics(code, shell)
-        args = list(args) + self.args + ["-c", code]
+    def run(
+        self,
+        cell_id: typ.Text,
+        code: typ.List[shapes.Cell],
+        metadata: shapes.Metadata,
+        shell: InteractiveShell,
+        *args,
+        **kwargs
+    ) -> shapes.Annotations:
+        transformed_code, line_offsets = self.transform_for_diagnostics(code, shell)
+        mypy_args = (
+            list(args) + self.args + ["-c", transformed_code]
+        )  # type: typ.List[typ.Text]
 
-        out, err, count = mypy.api.run(args)
+        out, err, count = mypy.api.run(mypy_args)
 
         matches = [re.match(_re_mypy, line) for line in out.strip().split("\n")]
-        matches = [match.groupdict() for match in matches if match]
+        raw_items = [match.groupdict() for match in matches if match]
 
-        diagnostics = []
+        diagnostics = []  # type: typ.List[shapes.Diagnostic]
 
-        for diag in matches:
+        for diag in raw_items:
             line = int(diag["line"]) - line_offsets[cell_id]
             col = int(diag["col"])
             msg = diag["message"].strip()
@@ -56,4 +72,4 @@ class MyPyDiagnoser(IPythonDiagnoser):
                 }
             )
 
-        return dict(diagnostics=diagnostics) if diagnostics else {}
+        return dict(diagnostics=diagnostics)

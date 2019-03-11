@@ -1,6 +1,51 @@
 {
   "additionalProperties": false,
   "definitions": {
+    "annotation-bundle": {
+      "patternProperties": {
+        ".*/.*": {
+          "properties": {
+            "code_actions": {
+              "items": {
+                "$ref": "#/definitions/lsp-code-action"
+              },
+              "type": "array"
+            },
+            "diagnostics": {
+              "items": {
+                "$ref": "#/definitions/lsp-diagnostic"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      }
+    },
+    "lsp-code-action": {
+      "additionalProperties": false,
+      "properties": {
+        "diagnostics": {
+          "items": {
+            "$ref": "#/definitions/lsp-diagnostic"
+          },
+          "type": "array"
+        },
+        "edit": {
+          "$ref": "#/definitions/lsp-workspace-edit"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
     "lsp-diagnostic": {
       "properties": {
         "additionalProperties": false,
@@ -11,58 +56,22 @@
           "type": "string"
         },
         "range": {
-          "$ref": "#/definitions/meta-bundle"
+          "$ref": "#/definitions/lsp-range"
         },
         "severity": {
-          "type": "number",
-          "enum": [1,2,3,4]
+          "enum": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "type": "number"
         },
         "source": {
           "type": "string"
         }
       },
       "type": "object"
-    },
-    "lsp-code-action": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["title"],
-      "properties": {
-        "title": {"type": "string"},
-        "kind": {"type": "string"},
-        "diagnostics": {
-          "type": "array",
-          "items": {"$ref": "#/definitions/lsp-diagnostic"}
-        },
-        "edit": {"$ref": "#/definitions/lsp-workspace-edit"}
-      }
-    },
-    "lsp-workspace-edit": {
-      "type": "object",
-      "patternProperties": {
-        ".*": {
-          "type": "object",
-          "properties": {
-            "changes": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/lsp-text-edit"
-              }
-            }
-          }
-        }
-      }
-    },
-    "lsp-text-edit": {
-      "type": "object",
-      "properties": {
-        "range": {
-          "$ref": "#/lsp-range"
-        },
-        "newText": {
-          "type": "string"
-        }
-      }
     },
     "lsp-pos": {
       "properties": {
@@ -84,6 +93,33 @@
         }
       }
     },
+    "lsp-text-edit": {
+      "properties": {
+        "newText": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/lsp-range"
+        }
+      },
+      "type": "object"
+    },
+    "lsp-workspace-edit": {
+      "patternProperties": {
+        ".*": {
+          "properties": {
+            "changes": {
+              "items": {
+                "$ref": "#/definitions/lsp-text-edit"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "meta-bundle": {
       "patternProperties": {
         ".*/.*": {
@@ -95,30 +131,25 @@
           "type": "object"
         }
       }
-    },
-    "annotation-bundle": {
-      "patternProperties": {
-        ".*/.*": {
-          "type": "object",
-          "properties": {
-            "code_actions": {
-              "type": "array",
-              "items": {"$ref": "#/definitions/lsp-code-action"}
-            },
-            "diagnostics": {
-              "type": "array",
-              "items": {"$ref": "#/definitions/lsp-diagnostic"}
-            }
-          }
-        }
-      }
     }
   },
   "properties": {
-    "cell_id": {"type": "string"},
-    "metadata": {"$ref": "#/definitions/meta-bundle"},
-    "annotations": {"$ref": "#/definitions/annotation-bundle"},
-    "request_id": {"type": "number"}
+    "annotations": {
+      "$ref": "#/definitions/annotation-bundle"
+    },
+    "cell_id": {
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/definitions/meta-bundle"
+    },
+    "request_id": {
+      "type": "number"
+    }
   },
+  "required": [
+    "cell_id",
+    "request_id"
+  ],
   "type": "object"
 }

@@ -1,10 +1,12 @@
 import difflib
 import re
+import typing as typ
 
 import black
 import traitlets
 
-from .diagnoser import Diagnoser, IPythonDiagnoser
+from .. import shapes
+from .diagnoser import Diagnoser, InteractiveShell, IPythonDiagnoser
 
 _help_black_args = "https://black.readthedocs.io/en/stable/installation_and_usage.html#command-line-options"
 
@@ -14,7 +16,15 @@ class BlackDiagnoser(IPythonDiagnoser):
 
     entry_point = traitlets.Unicode(default_value=black.__name__)
 
-    def run(self, cell_id, code, metadata, shell, *args, **kwargs):
+    def run(
+        self,
+        cell_id: typ.Text,
+        code: typ.List[shapes.Cell],
+        metadata: shapes.Metadata,
+        shell: InteractiveShell,
+        *args,
+        **kwargs
+    ) -> shapes.Annotations:
         for cell in code:
             if cell["cell_id"] != cell_id:
                 continue
@@ -38,7 +48,7 @@ class BlackDiagnoser(IPythonDiagnoser):
                                                     character=1,
                                                 ),
                                             },
-                                            "newText": black_src,
+                                            "newText": black_src.rstrip(),
                                         }
                                     ]
                                 }

@@ -7,9 +7,33 @@ commands:
   lint:
     unix: |-
       set -eux \
-      && isort -rc packages \
-      && black packages \
+      && isort -rc packages stubs \
+      && black packages stubs \
+      && MYPYPATH=$PROJECT_DIR/stubs \
+        mypy \
+          packages/ipylintotype/src \
+          --ignore-missing-imports \
+          --html-report $PROJECT_DIR/_artifacts/mypy \
+          --python-version 3.6 \
+          --show-column-numbers \
       && jlpm lint
+  mypy:
+    unix: |-
+      MYPYPATH=$PROJECT_DIR/stubs \
+      mypy \
+        packages/ipylintotype/src \
+        --html-report $PROJECT_DIR/_artifacts/mypy \
+        --python-version 3.6 \
+        --show-column-numbers \
+        --show-error-context
+  test:
+    unix: |-
+      set -eux \
+      && cd packages/ipylintotype/ \
+      && ipython -m pytest -- \
+        --cov \
+        --cov-report term-missing:skip-covered \
+        --cov-report html:$PROJECT_DIR/_artifacts/htmlcov
 
 env_specs:
   default:
@@ -17,6 +41,7 @@ env_specs:
       - lintotype
     packages:
       - isort
+      - lxml
       - nbval
       - pytest
       - pytest-cov
@@ -28,6 +53,7 @@ env_specs:
       - isort
       - jupyterlab >=0.35,<0.36
       - mypy
+      - mypy_extensions
       - nodejs >=8.11,<9
       - pycodestyle >=2.5.0
       - pylint
