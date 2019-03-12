@@ -81,7 +81,17 @@ def minimal_annotations() -> shapes.MIMEAnnotations:
                     },
                     "severity": 1,
                     "source": "mypy",
-                }
+                },
+                {
+                    "code": "",
+                    "message": "invalid syntax",
+                    "range": {
+                        "end": {"character": 5, "line": 0},
+                        "start": {"character": 4, "line": 0},
+                    },
+                    "severity": 1,
+                    "source": "pyflakes",
+                },
             ],
         }
     }
@@ -105,6 +115,5 @@ def test_formatter_call(
         cell_id="1", code=minimal_clean_code, metadata={}
     )
 
-    assert minimal_annotations == formatter(
-        cell_id="1", code=minimal_bad_code, metadata={}
-    )
+    observed = formatter(cell_id="1", code=minimal_bad_code, metadata={})
+    assert minimal_annotations == observed, observed

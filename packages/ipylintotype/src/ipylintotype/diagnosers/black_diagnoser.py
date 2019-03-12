@@ -29,7 +29,10 @@ class BlackDiagnoser(IPythonDiagnoser):
             if cell["cell_id"] != cell_id:
                 continue
 
-            black_src = black.format_str(cell["code"], line_length=self.line_length)
+            try:
+                black_src = black.format_str(cell["code"], line_length=self.line_length)
+            except:
+                return {}
 
             if black_src.strip() != cell["code"].strip():
                 return dict(
