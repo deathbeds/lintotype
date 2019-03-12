@@ -54,9 +54,19 @@ CodeAction = TypedDict(
     total=False,
 )
 
+MarkupContent = TypedDict("MarkupContent", {"kind": typ.Text, "value": typ.Text})
+
+MarkupContext = TypedDict(
+    "MarkupContext", {"range": Range, "content": MarkupContent, "title": typ.Text}
+)
+
 Annotations = TypedDict(
     "Annotations",
-    {"code_actions": typ.List[CodeAction], "diagnostics": typ.List[Diagnostic]},
+    {
+        "code_actions": typ.List[CodeAction],
+        "diagnostics": typ.List[Diagnostic],
+        "markup_contexts": typ.List[MarkupContext],
+    },
     total=False,
 )
 

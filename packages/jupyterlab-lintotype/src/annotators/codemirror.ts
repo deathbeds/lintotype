@@ -62,19 +62,18 @@ export class CodeMirrorAnnotator
           callback: (annotations: CodeMirrorAnnotator.IMark[]) => void
         ): Promise<void> => {
           let response = await this._lintotype.annotateNotebook(panel, cell);
+          if (!response || !response.annotations) {
+            return;
+          }
+          let annotations = response.annotations[cell.model.mimeType];
+          let { diagnostics, code_actions, markup_contexts } = annotations;
           try {
-            const annotations = response.annotations[cell.model.mimeType];
-            console.table(annotations.diagnostics);
-            callback((annotations.diagnostics || []).map(this.lspToCM));
-            console.table(annotations.code_actions);
+            callback((diagnostics || []).map(this.lspToCM));
           } catch {
             callback([]);
           }
 
-          this.makeLineWidgets(
-            cell,
-            response.annotations[cell.model.mimeType].code_actions
-          );
+          this.makeLineWidgets(cell, code_actions, markup_contexts);
         }
       }
     };
@@ -87,7 +86,11 @@ export class CodeMirrorAnnotator
     this._lineWidgets.delete(cell.model.id);
   }
 
-  makeLineWidgets(cell: Cell, codeActions: CodeAction[] = []) {
+  makeLineWidgets(
+    cell: Cell,
+    codeActions: CodeAction[] = [],
+    contexts: ILintotypeManager.IMarkupContext[] = []
+  ) {
     const cm = (cell.editor as any)._editor as CodeMirror.Editor;
     this.removeLineWidgets(cell);
 
@@ -107,6 +110,15 @@ export class CodeMirrorAnnotator
         btn.textContent = action.title;
         lineWidgets.push(cm.addLineWidget(changes[0].range.end.line, btn));
       }
+    });
+
+    (contexts || []).forEach(context => {
+      let btn = document.createElement('button');
+      btn.textContent = context.title;
+      btn.onclick = () => {
+        this._lintotype.requestContext(context);
+      };
+      lineWidgets.push(cm.addLineWidget((context.range as any).end.line, btn));
     });
 
     this._lineWidgets.set(cell.model.id, lineWidgets);

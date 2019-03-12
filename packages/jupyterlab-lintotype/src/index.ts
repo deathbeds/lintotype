@@ -1,10 +1,16 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
 
-import { Diagnostic, CodeAction } from 'vscode-languageserver-types';
+import {
+  Diagnostic,
+  CodeAction,
+  MarkupContent
+} from 'vscode-languageserver-types';
 
 import { Cell } from '@jupyterlab/cells';
 
 import { Token } from '@phosphor/coreutils';
+
+import { ISignal } from '@phosphor/signaling';
 
 export const NAME = '@deathbeds/jupyterlab-lintotype';
 export const VERSION = '0.1.0';
@@ -13,6 +19,11 @@ export const PLUGIN_ID = `${NAME}:ILintotypeManager`;
 export interface ILintotypeManager {
   lintifyNotebook(panel: NotebookPanel): void;
   linters: Map<string, ILintotypeManager.ILinter>;
+  requestContext(context: ILintotypeManager.IMarkupContext): void;
+  contextRequested: ISignal<
+    ILintotypeManager,
+    ILintotypeManager.IMarkupContext
+  >;
   annotateNotebook(
     notebook: NotebookPanel,
     cell: Cell
@@ -28,10 +39,17 @@ export namespace ILintotypeManager {
     metadata?: any;
   }
 
+  export interface IMarkupContext {
+    range: Range;
+    content: MarkupContent;
+    title: string;
+  }
+
   export interface IAnnotationsBundle {
     [key: string]: {
       diagnostics?: Diagnostic[];
       code_actions?: CodeAction[];
+      markup_contexts?: IMarkupContext[];
     };
   }
 

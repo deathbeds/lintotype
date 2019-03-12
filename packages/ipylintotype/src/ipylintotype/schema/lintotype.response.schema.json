@@ -16,6 +16,26 @@
                 "$ref": "#/definitions/lsp-diagnostic"
               },
               "type": "array"
+            },
+            "markup_contexts": {
+              "properties": {
+                "range": {
+                  "$ref": "#/definitions/lsp-range"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "content": {
+                  "properties": {
+                    "kind": {
+                      "enum": ["markdown"]
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
             }
           },
           "type": "object"

@@ -56,6 +56,8 @@ env_specs:
       - mypy_extensions
       - nodejs >=8.11,<9
       - pycodestyle >=2.5.0
+      - pydot
+      - pygraphviz
       - pylint
       - python >=3.7,<3.8
       - tornado<6

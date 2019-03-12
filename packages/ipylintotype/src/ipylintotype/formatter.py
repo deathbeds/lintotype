@@ -89,12 +89,15 @@ class AnnotationFormatter(IPython.core.interactiveshell.InteractiveShell):
                 )
                 for anno_type, annos in annotations.items():
                     mime_result = result.setdefault(
-                        mime, {"diagnostics": [], "code_actions": []}
+                        mime,
+                        {"diagnostics": [], "code_actions": [], "markup_contexts": []},
                     )
                     if anno_type == "diagnostics":
                         mime_result["diagnostics"].extend(annos)  # type: ignore
                     elif anno_type == "code_actions":
                         mime_result["code_actions"].extend(annos)  # type: ignore
+                    elif anno_type == "markup_contexts":
+                        mime_result["markup_contexts"].extend(annos)  # type: ignore
             except Exception as err:
                 self.log.error(f"{diagnoser}: {err}\n{code}")
                 self.log.exception(f"{diagnoser} failed")

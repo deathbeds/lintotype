@@ -5,6 +5,8 @@ import { Cell } from '@jupyterlab/cells';
 
 import { KernelMessage, Kernel } from '@jupyterlab/services';
 
+import { ISignal, Signal } from '@phosphor/signaling';
+
 import { NAME, ILintotypeManager } from '.';
 
 export class LintotypeManager implements ILintotypeManager {
@@ -13,6 +15,10 @@ export class LintotypeManager implements ILintotypeManager {
     number,
     PromiseDelegate<ILintotypeManager.ILintoTypeResponse>
   >();
+  private _contextRequested = new Signal<
+    ILintotypeManager,
+    ILintotypeManager.IMarkupContext
+  >(this);
   linters = new Map<string, ILintotypeManager.ILinter>();
 
   lintifyNotebook(panel: NotebookPanel) {
@@ -21,6 +27,17 @@ export class LintotypeManager implements ILintotypeManager {
     }
 
     this.registerCommTarget(panel.session.kernel);
+  }
+
+  get contextRequested(): ISignal<
+    ILintotypeManager,
+    ILintotypeManager.IMarkupContext
+  > {
+    return this._contextRequested;
+  }
+
+  requestContext(context: ILintotypeManager.IMarkupContext) {
+    this._contextRequested.emit(context);
   }
 
   async annotateNotebook(

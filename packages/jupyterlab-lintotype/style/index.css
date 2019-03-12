@@ -103,7 +103,7 @@
   font-size: var(--jp-ui-font-size0);
   opacity: 0.5;
   text-transform: uppercase;
-  float: right;
+  /* float: right; */
 }
 
 .jp-LintoType-CodeAction:hover,
