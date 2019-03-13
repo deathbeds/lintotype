@@ -5,12 +5,14 @@ from IPython.core.interactiveshell import InteractiveShell
 
 from .. import shapes
 
+if typ.TYPE_CHECKING:
+    from ipywidgets import DOMWidget
+
 
 class Diagnoser(traitlets.HasTraits):
     mimetype = traitlets.Unicode()
     entry_point = traitlets.Unicode()
     enabled = traitlets.Bool(True)
-    args = traitlets.List(traitlets.Unicode())  # type: typ.List[typ.Text]
 
     class Severity:
         error = 1
@@ -32,6 +34,10 @@ class Diagnoser(traitlets.HasTraits):
     @traitlets.default("entry_point")
     def _default_entry_point(self):
         return self.__name__
+
+    def show(self):  # type: () -> typ.List[DOMWidget]
+        widgets = []  # type: typ.List[DOMWidget]
+        return widgets
 
 
 class IPythonDiagnoser(Diagnoser):

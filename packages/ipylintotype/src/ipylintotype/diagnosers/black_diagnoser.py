@@ -12,9 +12,13 @@ _help_black_args = "https://black.readthedocs.io/en/stable/installation_and_usag
 
 
 class BlackDiagnoser(IPythonDiagnoser):
-    line_length = traitlets.Integer(88, help=_help_black_args)
+    args = traitlets.List(
+        traitlets.Unicode(), help=_help_black_args
+    )  # type: typ.List[typ.Text]
 
-    entry_point = traitlets.Unicode(default_value=black.__name__)
+    line_length = traitlets.Integer(88)
+
+    entry_point = traitlets.Unicode(black.__name__)
 
     def run(
         self,

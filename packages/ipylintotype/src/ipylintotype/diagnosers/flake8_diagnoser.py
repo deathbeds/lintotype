@@ -6,28 +6,31 @@ import re
 import tempfile
 import typing as typ
 
-import traitlets
+import traitlets as T
 from flake8.api import legacy
 from IPython.core.interactiveshell import InteractiveShell
 
 from .. import shapes
 from .diagnoser import IPythonDiagnoser
 
+if typ.TYPE_CHECKING:
+    import ipywidgets as W
+
 _re_flake8 = r"^(.*):\s*(?P<line>\d+)\s*:\s*(?P<col>\d+)\s*:\s*(?P<code>.*?)\s(?P<message>.*)\s*$"
 
 
 class Flake8Diagnoser(IPythonDiagnoser):
-    entry_point = traitlets.Unicode(default_value="flake8")
+    entry_point = T.Unicode(default_value="flake8")
 
-    ignore = traitlets.List(traitlets.Unicode())
-    select = traitlets.List(traitlets.Unicode())
+    ignore = T.List(T.Unicode())
+    select = T.List(T.Unicode())
 
-    @traitlets.default("ignore")
+    @T.default("ignore")
     def _default_ignore(self) -> typ.List[typ.Text]:
         d: typ.List[typ.Text] = []
         return d
 
-    @traitlets.default("select")
+    @T.default("select")
     def _default_select(self) -> typ.List[typ.Text]:
         d: typ.List[typ.Text] = []
         return d
@@ -72,24 +75,24 @@ class Flake8Diagnoser(IPythonDiagnoser):
             )
         return {"diagnostics": diagnostics}
 
+    def show(self):  # type: () -> typ.List[W.DOMWidget]
+        children = []  # type: typ.List[W.DOMWidget]
 
-try:
-    import ipywidgets as W, traitlets as T
+        try:
+            import ipywidgets as W
+        except ImportError:
+            return children
 
-    def show_flake8(diagnoser: Flake8Diagnoser) -> typ.List[W.DOMWidget]:
         ignore = W.Textarea(description="ignore")
 
         def ignore_to_diagnoser(value: typ.Text) -> typ.List[typ.Text]:
             return [i.strip() for i in value.split(" ")]
 
-        T.dlink((ignore, "value"), (diagnoser, "ignore"), ignore_to_diagnoser)
+        T.dlink((ignore, "value"), (self, "ignore"), ignore_to_diagnoser)
         select = W.SelectMultiple(
             options=["E", "W", "F"], value=["E", "W", "F"], description="select"
         )
 
-        T.dlink((select, "value"), (diagnoser, "select"))  # type: ignore
+        T.dlink((select, "value"), (self, "select"))  # type: ignore
+
         return [ignore, select]
-
-
-except ImportError:
-    pass

@@ -19,6 +19,7 @@ from ..formatter import AnnotationFormatter
 
 if typ.TYPE_CHECKING:  # pragma: no cover
     from ..diagnosers.flake8_diagnoser import Flake8Diagnoser
+    from ..diagnosers.pyreverse_diagnoser import PyReverseDiagnoser
 
 
 def show_enabled(diagnoser: Diagnoser) -> DOMWidget:
@@ -39,7 +40,7 @@ def show_enabled(diagnoser: Diagnoser) -> DOMWidget:
 
 
 def show_args(diagnoser: Diagnoser, container: typ.Callable[..., Box] = VBox) -> Box:
-    text = Textarea(" ".join(diagnoser.args), rows=3)
+    text = Textarea(" ".join(diagnoser.args), rows=3)  # type: ignore
     dlink((text, "value"), (diagnoser, "args"), lambda x: x.split(" "))  # type: ignore
     help_text = diagnoser.traits()["args"].help
     help = HTML(f"""<a href="{help_text}" target="_blank">more...</a>""")
@@ -59,22 +60,13 @@ def show_diagnoser(
     diagnoser: Diagnoser, container: typ.Callable[..., Box] = VBox
 ) -> Box:
     enabled = show_enabled(diagnoser)
-    widgets: typ.List[DOMWidget] = []
+    widgets = diagnoser.show()
+
     if hasattr(diagnoser, "args"):
         widgets += [show_args(diagnoser)]
+
     if hasattr(diagnoser, "line_length"):
         widgets += [show_line_length(diagnoser)]
-
-    is_flake8 = False
-    try:
-        from ipylintotype.diagnosers.flake8_diagnoser import (
-            show_flake8,
-            Flake8Diagnoser,
-        )
-
-        show_flake8(typ.cast(Flake8Diagnoser, diagnoser))
-    except:
-        pass
 
     for widget in widgets:
         dlink(

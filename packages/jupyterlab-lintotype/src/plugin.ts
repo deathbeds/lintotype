@@ -32,17 +32,20 @@ const plugin: JupyterLabPlugin<ILintotypeManager> = {
       cmAnnotator.lintifyNotebook(panel);
     });
 
+    const markdownContext = new Widget();
+    markdownContext.id = `id-lintotype-context-${nextId++}`;
+    markdownContext.title.closable = true;
+
     manager.contextRequested.connect(
       async (_: any, context: ILintotypeManager.IMarkupContext) => {
-        let w = new Widget();
         const { value, kind } = context.content;
-        w.id = `id-lintotype-context-${kind}-${nextId++}`;
-        w.title.label = context.title;
-        w.title.closable = true;
+        markdownContext.title.label = context.title;
         switch (kind) {
+          default:
+            return;
           case 'markdown':
             await renderMarkdown({
-              host: w.node,
+              host: markdownContext.node,
               source: value,
               trusted: true,
               sanitizer,
@@ -52,10 +55,8 @@ const plugin: JupyterLabPlugin<ILintotypeManager> = {
               linkHandler: null
             });
             break;
-          default:
-            return;
         }
-        _app.shell.addToMainArea(w);
+        _app.shell.addToMainArea(markdownContext, { mode: 'split-right' });
       }
     );
 
