@@ -5,6 +5,8 @@ from jsonschema import ValidationError
 
 from .. import AnnotationFormatter, shapes
 
+IPYTHON_MIME = "text/x-ipython"
+
 
 @pytest.fixture
 def formatter() -> AnnotationFormatter:
@@ -57,21 +59,23 @@ def test_formatter_validate_no_raise(
 
 @pytest.fixture
 def minimal_clean_code() -> shapes.MIMECode:
-    return {"text/x-ipython": [{"cell_id": "1", "code": "x = 1"}]}
+    return {IPYTHON_MIME: [{"cell_id": "1", "code": "x = 1"}]}
 
 
 @pytest.fixture
 def minimal_empty_response() -> shapes.MIMECode:
     return typ.cast(
-        shapes.MIMECode, {"text/x-ipython": {"diagnostics": [], "code_actions": []}}
+        shapes.MIMECode,
+        {IPYTHON_MIME: {"diagnostics": [], "code_actions": [], "markup_contexts": []}},
     )
 
 
 @pytest.fixture
 def minimal_annotations() -> shapes.MIMEAnnotations:
     return {
-        "text/x-ipython": {
+        IPYTHON_MIME: {
             "code_actions": [],
+            "markup_contexts": [],
             "diagnostics": [
                 {
                     "message": "invalid syntax",
@@ -100,7 +104,7 @@ def minimal_annotations() -> shapes.MIMEAnnotations:
 @pytest.fixture
 def minimal_bad_code() -> shapes.MIMECode:
     return typ.cast(
-        shapes.MIMECode, {"text/x-ipython": [{"cell_id": "1", "code": "x = \n(1\n)"}]}
+        shapes.MIMECode, {IPYTHON_MIME: [{"cell_id": "1", "code": "x = \n(1\n)"}]}
     )
 
 
@@ -116,4 +120,17 @@ def test_formatter_call(
     )
 
     observed = formatter(cell_id="1", code=minimal_bad_code, metadata={})
-    assert minimal_annotations == observed, observed
+    for mime, annotations in observed.items():
+        for anno_type in ["code_actions", "diagnostics", "markup_contexts"]:
+            if anno_type == "markup_context":
+                continue
+            elif anno_type == "code_actions":
+                assert (
+                    minimal_annotations[mime]["code_actions"]
+                    == annotations["code_actions"]
+                )
+            elif anno_type == "diagnostics":
+                assert (
+                    minimal_annotations[mime]["diagnostics"]
+                    == annotations["diagnostics"]
+                )

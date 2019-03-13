@@ -94,7 +94,8 @@
   border-bottom: solid 2px var(--jpltyp-color-hint);
 }
 
-.jp-LintoType-CodeAction {
+.jp-LintoType-CodeAction,
+.jp-LintoType-MarkupContext {
   background-color: transparent;
   border: solid 1px transparent;
   color: var(--jpltyp-color-info);
@@ -103,11 +104,26 @@
   font-size: var(--jp-ui-font-size0);
   opacity: 0.5;
   text-transform: uppercase;
-  /* float: right; */
+  float: right;
+  z-index: 9999;
+}
+
+.jp-LintoType-CodeAction {
+  color: var(--jpltyp-color-hint);
 }
 
 .jp-LintoType-CodeAction:hover,
 .jp-LintoType-CodeAction:focus {
+  border: solid 1px var(--jpltyp-color-hint);
+  opacity: 0.9;
+}
+
+.jp-LintoType-MarkupContext:hover,
+.jp-LintoType-MarkupContext:focus {
   border: solid 1px var(--jpltyp-color-info);
   opacity: 0.9;
+}
+
+.CodeMirror pre {
+  z-index: 1;
 }

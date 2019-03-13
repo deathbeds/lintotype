@@ -38,6 +38,7 @@ const plugin: JupyterLabPlugin<ILintotypeManager> = {
         const { value, kind } = context.content;
         w.id = `id-lintotype-context-${kind}-${nextId++}`;
         w.title.label = context.title;
+        w.title.closable = true;
         switch (kind) {
           case 'markdown':
             await renderMarkdown({
@@ -52,15 +53,12 @@ const plugin: JupyterLabPlugin<ILintotypeManager> = {
             });
             break;
           default:
-            break;
+            return;
         }
         _app.shell.addToMainArea(w);
       }
     );
 
-    // let button = new LintotypeButton();
-    // button.manager = manager;
-    // app.docRegistry.addWidgetExtension('Notebook', button);
     return manager;
   }
 };

@@ -1,0 +1,9 @@
+from traitlets.utils.bunch import Bunch
+
+from .inspector import Linker, Project
+
+class DiaDefs: ...
+
+class DiadefsHandler:
+    def __init__(self, config: Bunch): ...
+    def get_diadefs(self, project: Project, linker: Linker) -> DiaDefs: ...

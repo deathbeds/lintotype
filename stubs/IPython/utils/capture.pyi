@@ -1,0 +1,3 @@
+import typing as typ
+
+def capture_output(display: typ.Any) -> typ.Any: ...

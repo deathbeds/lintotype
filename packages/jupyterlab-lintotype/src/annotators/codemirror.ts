@@ -11,6 +11,11 @@ const CM_SEVERITY = {
   4: 'hint'
 };
 
+export const CSS = {
+  BTN_CODE_ACTION: 'jp-LintoType-CodeAction',
+  BTN_MARKUP_CTXT: 'jp-LintoType-MarkupContext'
+};
+
 export class CodeMirrorAnnotator
   implements ILintotypeManager.IAnnotationRenderer {
   private _lintotype: ILintotypeManager;
@@ -100,7 +105,7 @@ export class CodeMirrorAnnotator
       let changes = action.edit.changes[cell.model.id];
       if (changes && changes.length) {
         let btn = document.createElement('button');
-        btn.className = 'jp-LintoType-CodeAction';
+        btn.className = CSS.BTN_CODE_ACTION;
         btn.onclick = () => {
           this.removeLineWidgets(cell);
           cm.setValue(changes[0].newText.trim());
@@ -115,6 +120,7 @@ export class CodeMirrorAnnotator
     (contexts || []).forEach(context => {
       let btn = document.createElement('button');
       btn.textContent = context.title;
+      btn.className = CSS.BTN_MARKUP_CTXT;
       btn.onclick = () => {
         this._lintotype.requestContext(context);
       };
